@@ -1,0 +1,14 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  profiles:
+    active: dev
+    include: secret
+  jpa:
+    hibernate:
+      ddl-auto: update
