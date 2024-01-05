@@ -1,4 +1,4 @@
-package com.ll.medium240104.global.config;
+package com.ll.medium240104.global.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
