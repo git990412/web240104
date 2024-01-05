@@ -2,9 +2,7 @@ package com.ll.medium240104.global.security.jwt;
 
 import com.ll.medium240104.domain.member.member.entity.Member;
 import com.ll.medium240104.domain.member.member.repository.MemberRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +12,14 @@ import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
+import javax.crypto.SecretKey;
+import java.util.Date;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class TestJwtUtil {
+public class TestJwt {
     @Autowired
     JwtUtils jwtUtils;
 
@@ -96,10 +97,31 @@ public class TestJwtUtil {
     }
 
     @Test
-    @DisplayName("jwtFilter 작동 테스트")
-    void t5() {
-        ResponseEntity<String> response = restTemplate.exchange("/testhw", HttpMethod.GET, null, String.class);
+    @DisplayName("jwtFilter 만료 테스트")
+    void t5() throws InterruptedException {
+        String email = "wjdwn282@gmail.com";
 
-        System.out.println(response.getBody());
+        SecretKey secret = Jwts.SIG.HS512.key().build();
+
+        String token = Jwts.builder()
+                .subject(email)
+                .expiration(new Date((new Date()).getTime() + 1000))
+                .signWith(secret)
+                .compact();
+
+        Thread.sleep(1500);
+
+        try {
+            Jwts.parser()
+                    .verifyWith(secret)
+                    .build()
+                    .parseSignedClaims(token);
+
+            assertThat(false).isTrue();
+        } catch (JwtException e) {
+            if (e instanceof ExpiredJwtException) {
+                assertThat(true).isTrue();
+            }
+        }
     }
 }
