@@ -2,7 +2,9 @@ package com.ll.medium240104.global.security.jwt;
 
 import com.ll.medium240104.domain.member.member.entity.Member;
 import com.ll.medium240104.domain.member.member.repository.MemberRepository;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +13,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-
-import javax.crypto.SecretKey;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -101,27 +100,19 @@ public class TestJwt {
     void t5() throws InterruptedException {
         String email = "wjdwn282@gmail.com";
 
-        SecretKey secret = Jwts.SIG.HS512.key().build();
-
-        String token = Jwts.builder()
-                .subject(email)
-                .expiration(new Date((new Date()).getTime() + 1000))
-                .signWith(secret)
-                .compact();
+        String token = jwtUtils.generateJwtTokenWithMs(email, 1000);
 
         Thread.sleep(1500);
 
-        try {
-            Jwts.parser()
-                    .verifyWith(secret)
-                    .build()
-                    .parseSignedClaims(token);
+        ResponseCookie jwtCookie = jwtUtils.createJwtCookie(token);
 
-            assertThat(false).isTrue();
-        } catch (JwtException e) {
-            if (e instanceof ExpiredJwtException) {
-                assertThat(true).isTrue();
-            }
-        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Cookie", jwtCookie.getName() + "=" + jwtCookie.getValue());
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange("/filterTest", HttpMethod.GET, entity, String.class);
+
+        assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
     }
 }

@@ -36,6 +36,15 @@ public class JwtUtils {
                 .compact();
     }
 
+    public String generateJwtTokenWithMs(String email, int ms) {
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(new Date().getTime() + ms))
+                .signWith(secret)
+                .compact();
+    }
+
     public Jws<Claims> validateJwtToken(String authToken) {
         return Jwts.parser()
                 .verifyWith(secret)

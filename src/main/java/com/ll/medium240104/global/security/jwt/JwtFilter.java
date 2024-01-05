@@ -2,6 +2,7 @@ package com.ll.medium240104.global.security.jwt;
 
 import com.ll.medium240104.global.security.service.UserDetailsServiceImpl;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -38,7 +39,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (JwtException e) {
-                throw new JwtException("Invalid JWT token");
+                if (e instanceof ExpiredJwtException) {
+                    System.out.println("ExpiredJwt");
+                }
             }
         }
         filterChain.doFilter(request, response);
