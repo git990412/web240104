@@ -21,6 +21,9 @@ public class JwtUtils {
     @Value("${jwt.jwtCookieName}")
     private String jwtCookieName;
 
+    @Value("${jwt.refreshCookieName}")
+    private String refreshCookieName;
+
     private final SecretKey secret;
 
     public JwtUtils() {
@@ -60,8 +63,41 @@ public class JwtUtils {
                 .build();
     }
 
+    public ResponseCookie createRefreshCookie(String token) {
+        return ResponseCookie.from(refreshCookieName, token)
+                .httpOnly(true)
+                .maxAge(60 * 60 * 24 * 14)
+                .path("/api")
+                .build();
+    }
+
+    public ResponseCookie cleanJwtCookie() {
+        return ResponseCookie.from(jwtCookieName, "")
+                .httpOnly(true)
+                .maxAge(0)
+                .path("/api")
+                .build();
+    }
+
+    public ResponseCookie cleanRefreshCookie() {
+        return ResponseCookie.from(refreshCookieName, "")
+                .httpOnly(true)
+                .maxAge(0)
+                .path("/api")
+                .build();
+    }
+
     public String getJwtFromRequest(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, jwtCookieName);
+
+        if (cookie != null)
+            return cookie.getValue();
+        else
+            return null;
+    }
+
+    public String getRefreshFromRequest(HttpServletRequest request) {
+        Cookie cookie = WebUtils.getCookie(request, refreshCookieName);
 
         if (cookie != null)
             return cookie.getValue();

@@ -2,6 +2,7 @@ package com.ll.medium240104.global.security.jwt;
 
 import com.ll.medium240104.domain.member.member.entity.Member;
 import com.ll.medium240104.domain.member.member.repository.MemberRepository;
+import com.ll.medium240104.global.security.jwt.refreshToken.service.RefreshTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
@@ -31,6 +32,21 @@ public class TestJwt {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Autowired
+    RefreshTokenService refreshTokenService;
+
+    @Test
+    @DisplayName("SetUp")
+    void t0() {
+        Member member = memberRepository.save(Member.builder()
+                .username("test")
+                .email("wjdwn282@gmail.com")
+                .password(passwordEncoder.encode("1234"))
+                .build());
+
+        refreshTokenService.createByMemberId(member.getId());
+    }
+
     @Test
     @DisplayName("토큰생성 테스트")
     void t1() {
@@ -56,12 +72,6 @@ public class TestJwt {
     @Test
     @DisplayName("Jwt 쿠키 전송 테스트")
     void t3() {
-        memberRepository.save(Member.builder()
-                .username("test")
-                .email("wjdwn282@gmail.com")
-                .password(passwordEncoder.encode("1234"))
-                .build());
-
         String email = "wjdwn282@gmail.com";
         String token = jwtUtils.generateJwtToken(email);
 
@@ -114,5 +124,14 @@ public class TestJwt {
         ResponseEntity<String> response = restTemplate.exchange("/filterTest", HttpMethod.GET, entity, String.class);
 
         assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    @DisplayName("jwttoken 이 만료되어도 refreshtoken이 살아있다면 jwt 재발급")
+    void t6() {
+        String email = "wjdwn282@gmail.com";
+        String token = jwtUtils.generateJwtToken(email);
+
+        
     }
 }
